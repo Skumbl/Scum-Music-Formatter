@@ -18,4 +18,4 @@
    ```bash
    lua scum_music_formatter.lua --path /path/to/files
 
-# Run lua SMF.lua -h for usage
+### Run lua SMF.lua -h for usage
