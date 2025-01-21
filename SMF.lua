@@ -15,6 +15,10 @@ parser:option("-n --name", "if files are name-artist or artist-name")
 	:choices({"AN", "NA"})
 	:default("AN")
 
+-- parser:option("-o --output", "output directory for converted files")
+--     :default("./")
+--     :args"?"
+
 -- HELPER FUNCTIOINS
 -------------------------------------------
 function parsefileName(fileName)
@@ -65,12 +69,12 @@ function processDirectory(directory, fileType, fileFormat)
             if mode == "file" then
                 -- Only process audio files (e.g., .flac, .mp3, etc.)
                 if file:match("%.flac$") or file:match("%.mp3$") or file:match("%.wav$") then
-                    print("Processing file: " .. filePath)
                     convertFile(filePath, fileType, fileFormat)
                 end
             end
         end
     end
+    print("File Formatting Complete")
 end
 
 -- MAIN LOGIC
