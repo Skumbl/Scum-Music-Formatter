@@ -17,3 +17,5 @@
 2. Run the script:
    ```bash
    lua scum_music_formatter.lua --path /path/to/files
+
+# Run lua SMF.lua -h for usage
