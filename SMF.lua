@@ -11,13 +11,13 @@ parser:option("-e --extension", "desired file format")
 	:choices({"mp3", "wav"})
 	:default("wav")
 
-parser:option("-n --name", "if files are name-artist or artist-name")
-	:choices({"AN", "NA"})
-	:default("AN")
+parser:option("-n --nameScheme", "Specify whether file names are 'Artist - Title' or 'Title - Artist'")
+    :choices({"artist_first", "title_first"})
+    :default("artist_first")
 
--- parser:option("-o --output", "output directory for converted files")
---     :default("./")
---     :args"?"
+parser:option("-o --output", "Directory to save the converted files")
+    :default(nil)
+
 
 -- HELPER FUNCTIOINS
 -------------------------------------------
@@ -36,22 +36,25 @@ function parsefileName(fileName)
     return {part1, part2, extension:sub(2)} -- Remove the dot from extension
 end
 
-function getFileExtension(fileName)
-    return fileName:match("^.+(%..+)$")
-end
-
-function convertFile (fileName, fileType, fileFormat)
+function convertFile (fileName, fileType, fileFormat, outputDir)
 	local parsedFileName = parsefileName(fileName);
 	local fileExtension = parsedFileName[3]
 
 	if (fileExtension == fileType) then
 		print("file is already in " .. fileType .. " format")
 	else
-		if fileFormat == "AN" then
+		if fileFormat == "artist_first" then
 			convertedFileName = parsedFileName[2] .. "." .. fileType
-		elseif fileFormat == "NA" then
+		elseif fileFormat == "title_first" then
 			convertedFileName = parsedFileName[1] .. "." .. fileType
 		end
+
+        if outputDir then
+            convertedFileName = outputDir .. "/" .. convertedFileName
+        else
+            -- Default to the same directory as the original file
+            convertedFileName = fileName:match("^(.-)/") .. "/" .. convertedFileName
+        end
 
 		-- build the ffmpeg command to convert the file to .fileType and execute
 	    local command = string.format("ffmpeg -i \"%s\" \"%s\"", fileName, convertedFileName)
@@ -59,7 +62,7 @@ function convertFile (fileName, fileType, fileFormat)
 	end
 end
 
-function processDirectory(directory, fileType, fileFormat)
+function processDirectory(directory, fileType, fileFormat, outputDir)
     for file in lfs.dir(directory) do
         -- Skip . and .. (current and parent directory)
         if file ~= "." and file ~= ".." then
@@ -69,7 +72,7 @@ function processDirectory(directory, fileType, fileFormat)
             if mode == "file" then
                 -- Only process audio files (e.g., .flac, .mp3, etc.)
                 if file:match("%.flac$") or file:match("%.mp3$") or file:match("%.wav$") then
-                    convertFile(filePath, fileType, fileFormat)
+                    convertFile(filePath, fileType, fileFormat, outputDir)
                 end
             end
         end
@@ -84,9 +87,9 @@ local args = parser:parse()
 if args.dir ~= nil and args.dir then 
     -- Loop through all the files in the directory
     print("Converting files in directory: " .. args.path)
-    processDirectory(args.path, args.extension, args.name)
+    processDirectory(args.path, args.extension, args.nameScheme, args.output)
 elseif args.file ~= nil and args.file then
     -- Convert the single file
     print("Converting file: " .. args.path)
-    convertFile(args.path, args.extension, args.name)
+    convertFile(args.path, args.extension, args.nameScheme, args.output)
 end
